@@ -1,20 +1,32 @@
+
+
+
+## TODO:
+# get list of ports for connection
+# listener for succesful connection
+# Readme (printrun build and lighter gcode parser)
+
+
+
+# append sister directory to sys.path so that we can import printcore
 import sys, os
 sys.path.append(os.path.abspath('Printrun/'))
 from printrun.printcore import printcore
+
+# detect keys (windows)
 import msvcrt
-#from printrun import gcoder
 
-def constrain(val, min_val, max_val):
-    return min(max_val, max(min_val, val))
+# utility functions
+from utils import *
 
-p = printcore('COM4',115200) # or p.printcore('COM3',115200) on Windows
+# 
+# from printrun import gcoder
 
-#gcode=[i.strip() for i in open('filename.gcode')] # or pass in your own array of gcode lines instead of reading from a file
-#gcode = ["G0 X20 Y86 Z90", "G0 F500 X180 Y6 Z70", "G0 F2000 X30 Y60 Z14"]
-
-#gcode = gcoder.LightGCode(gcode)
-
-#p.startprint(gcode) # this will start a print
+##
+## Connects to the Ender 3 Pro
+port = 'COM4'
+p = printcore(port, 115200)
+print("Connecting printer on port {}. Press R to auto home.".format(port))
 
 x = 0.0
 y = 0.0
@@ -59,7 +71,16 @@ while 1:
         
         print("x={}, y={}, z={}".format(x,y,z))
 
-#p.pause() # use these to pause/resume the current print
+p.cancelprint() # cancels the current print
+p.disconnect() # disconnect from the printer once you are done. This will also stop running prints.
+
+
+########
+# use these to pause/resume the current print
+#p.pause()
 #p.resume()           
-p.cancelprint() # cancels the current prints
-p.disconnect() # this is how you disconnect from the printer once you are done. This will also stop running prints.
+
+# gcode loader and starting print 
+#gcode=[i.strip() for i in open('filename.gcode')] # or pass in your own array of gcode lines instead of reading from a file
+#gcode = gcoder.LightGCode(gcode)
+#p.startprint(gcode) # this will start a print
