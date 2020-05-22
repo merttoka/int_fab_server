@@ -44,9 +44,12 @@ p = printcore(port, 115200)
 
 #### Keys
 `r`   Auto Home
-`x`-`s` increments and decrements the x dimension, respectively
-`y`-`h` increments and decrements the y dimension, respectively
-`z`-`a` increments and decrements the z dimension, respectively
+
+`x` - `s` increments and decrements the x dimension, respectively
+
+`y` - `h` increments and decrements the y dimension, respectively
+
+`z` - `a` increments and decrements the z dimension, respectively
 
 
 
