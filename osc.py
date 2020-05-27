@@ -4,6 +4,8 @@ from pythonosc import udp_client
 from pythonosc.osc_server import AsyncIOOSCUDPServer
 from pythonosc.dispatcher import Dispatcher
 
+from printer import * 
+
 import threading
 import asyncio
 import math
@@ -14,11 +16,16 @@ class Network:
     client = -1
     server = -1
 
-    dispatch = -1
+    # printer reference
+    printer = None
 
     # 
     def __init__(self, listen_port, ip, port):
         self.InitNetwork(ip, port, listen_port)
+    
+    # network binds the printer to update nozzle poz
+    def Bind(self, p: Printer):
+        self.printer = p
     
     # 
     def InitNetwork(self, client_ip, client_port, listen_port):
@@ -53,4 +60,6 @@ class Network:
     # 
     # Listen Callbacks
     def PrintMessage(self, identifier, *args):
-        print("{} x={}, y={}, z={}".format(identifier, args[0], args[1], args[2]))
+        if self.printer is not None:
+            self.printer.UpdateNozzlePosition(args[0], args[1], args[2])
+            print("{} x={}, y={}, z={}".format(identifier, args[0], args[1], args[2]))

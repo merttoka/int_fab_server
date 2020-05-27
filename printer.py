@@ -11,6 +11,10 @@ class Printer:
     # main printer instance
     printer = -1
 
+    # 
+    # nozzle head position
+    pos = [0, 0, 0]
+
     #
     # Constructs printer obj 
     def __init__(self, port):
@@ -43,13 +47,24 @@ class Printer:
     def IsPrinterOnline(self):
         return (self.printer != -1 and self.printer.online)
 
-
     #
     def SendLine(self, line):
         if self.IsPrinterOnline():
-            # printer.send(line)
+            self.printer.send(line)
             print("SENDING TO PRINTER: " + line)
 
+    # 
+    def UpdateNozzlePosition(self, _x, _y, _z):
+        self.pos[0] = _x
+        self.pos[1] = _y
+        self.pos[2] = _z
+
+        self.MoveNozzle()
+
+    # Higher level functions
+    # 
+    def MoveNozzle(self):
+        self.SendLine("G0 X{} Y{} Z{}".format(self.pos[0],self.pos[1],self.pos[2]))
 
     # 
     def SendAutoHome(self):

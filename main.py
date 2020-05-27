@@ -27,25 +27,22 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Start printer
-    # printer = Printer(args.serial)
+    printer = Printer(args.serial)
 
     # Start OSC network
     net = Network(args.listenport, args.ip, args.port)
+    net.Bind(printer)
 
     while 1:
-        loop = asyncio.get_event_loop()
-
         # OnKeyDown
         if msvcrt.kbhit():
             ch = msvcrt.getch()
             # escape if ESC
             if ord(ch) == 27:
                 break
-            
-            # printer.SendLine("PYTHON ---> ENDER")
-            
+
             if ch == b'r':
-                # printer.SendAutoHome()
+                printer.SendAutoHome()
                 x = 0
                 y = 0
                 z = 0
@@ -70,3 +67,5 @@ if __name__ == "__main__":
             
             print("x={}, y={}, z={}".format(x,y,z))
             net.SendMessage([float(x),float(y),float(z)])
+
+    printer.Destroy()
