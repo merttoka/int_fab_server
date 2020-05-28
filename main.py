@@ -7,11 +7,13 @@
 # Readme (printrun build and lighter gcode parser)
 
 import argparse  # parse arguments
+from datetime import datetime
+
 import msvcrt    # detect keys (windows)
 
 from utils import *
-from printer import *
-from osc import *
+from printer import Printer
+from osc import Network
 
 x = 0.0
 y = 0.0
@@ -34,6 +36,7 @@ if __name__ == "__main__":
     net.Bind(printer)
 
     while 1:
+
         # OnKeyDown
         if msvcrt.kbhit():
             ch = msvcrt.getch()
@@ -65,7 +68,9 @@ if __name__ == "__main__":
             y = constrain(y, 0,150)
             z = constrain(z, 0,150)
             
-            print("x={}, y={}, z={}".format(x,y,z))
+            PrintManager("x={}, y={}, z={}".format(x,y,z), 1)
             net.SendMessage([float(x),float(y),float(z)])
 
+    printer.Retract()
+    printer.SendAutoHome()
     printer.Destroy()

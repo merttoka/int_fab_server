@@ -1,26 +1,25 @@
 
-from pythonosc import udp_client
+from utils import PrintManager
+from printer import Printer 
 
+from pythonosc import udp_client
 from pythonosc.osc_server import AsyncIOOSCUDPServer
 from pythonosc.dispatcher import Dispatcher
 
-from printer import * 
-
 import threading
 import asyncio
-import math
 
 class Network:
-    
     # 
-    client = -1
-    server = -1
+    def __init__(self, listen_port, ip, port):    
+        # 
+        self.client = -1
+        self.server = -1
 
-    # printer reference
-    printer = None
+        # printer reference
+        self.printer = None
 
-    # 
-    def __init__(self, listen_port, ip, port):
+        #
         self.InitNetwork(ip, port, listen_port)
     
     # network binds the printer to update nozzle poz
@@ -31,19 +30,22 @@ class Network:
     def InitNetwork(self, client_ip, client_port, listen_port):
         # client
         self.client = udp_client.SimpleUDPClient(client_ip, client_port)
-        print("Connecting client on port {}.".format(client_port))
+        PrintManager("Connecting client on port {}.".format(client_port), 4)
 
         # server callbacks
         dispatch = Dispatcher()
-        dispatch.map("/test_pde", self.PrintMessage)
-        dispatch.set_default_handler(lambda _: print("Received message."))
+        dispatch.map("/extrude_move", self.MoveNozzle)
+        dispatch.map("/just_move", self.MoveNozzle)
+        dispatch.map("/extract", self.ExtractMaterial)
+        dispatch.map("/retract", self.RetractMaterial)
+        dispatch.set_default_handler(lambda _: PrintManager("Received message.", 1))
         # TODO: Add other functions
 
 
         # server 
         loop = asyncio.get_event_loop()
         self.server = AsyncIOOSCUDPServer(("127.0.0.1", listen_port), dispatch, asyncio.get_event_loop())
-        print("Serving on {}:{}".format("127.0.0.1", listen_port))
+        PrintManager("Serving on {}:{}".format("127.0.0.1", listen_port), 4)
         self.server.serve()
 
         # start the event loop for server
@@ -51,15 +53,31 @@ class Network:
         self.osc_thread.daemon = True
         self.osc_thread.start()
 
+
     #
-    # Send message to client
+    # Send message to processing
     def SendMessage(self, message):
         self.client.send_message("/test_py", message)
         # client.send_message("/filter1", [1., 2.])
 
+
     # 
-    # Listen Callbacks
-    def PrintMessage(self, identifier, *args):
-        if self.printer is not None:
-            self.printer.UpdateNozzlePosition(args[0], args[1], args[2])
-            print("{} x={}, y={}, z={}".format(identifier, args[0], args[1], args[2]))
+    # Processing Callbacks
+    #
+    def isPrinterConnected(self):
+        return (self.printer is not None and self.printer.isconnected)
+    def MoveNozzle(self, identifier, *args):
+        if self.isPrinterConnected():
+            if identifier.startswith("/extrude_"):
+                self.printer.UpdateNozzlePosition(args[0], args[1], args[2], True)
+            else:
+                self.printer.UpdateNozzlePosition(args[0], args[1], args[2])
+            # PrintManager("{} x={}, y={}, z={}".format(identifier, args[0], args[1], args[2]), 1)
+    #
+    def ExtractMaterial(self, identifier, *args):
+        if self.isPrinterConnected():
+            self.printer.Extract()
+    #
+    def RetractMaterial(self, identifier, *args):
+        if self.isPrinterConnected():
+            self.printer.Retract()

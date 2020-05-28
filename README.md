@@ -1,5 +1,8 @@
 
+This repository acts as a mediator between [the frontend](https://github.com/merttoka/int_fab_frontend.git) and Ender 3 Pro using [Printrun](https://github.com/kliment/Printrun) module. 
+
 *Tested on Windows 10 with Python 3.7.*
+Currently it wont run on MacOS due to `import mscvrt`, a Windows runtime I use for key presses. It should be fixed soon. 
 
 **[Printrun](https://github.com/kliment/Printrun) module:**
 ```
@@ -27,19 +30,14 @@ $ . venv/bin/activate  # activate the virtual environment (notice the space afte
 (venv) $ python setup.py build_ext --inplace
 ```
 
-#### Adjusting serial port 
-In `main.py`, change the following `port` variable to correct serial port for Ender 3.
-```python
-## main.py
-
-port = 'COM4' # <-- Windows 'COM#', Mac '/dev/ttyUSB#'
-p = printcore(port, 115200)
-```
-
 #### Run 
 ```bash
 > cd .. # jump back to root directory
-> python .\main.py
+
+# windows
+> python .\main.py --serial=COM#
+# macos
+$ python main.py --serial=/dev/ttyUSB#
 ```
 
 #### Keys
