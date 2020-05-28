@@ -176,7 +176,6 @@ class Printer:
         self.Retract()
 
 
-
     #
     # Private callback functions from printer to python
     # 
