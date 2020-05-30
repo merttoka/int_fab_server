@@ -34,9 +34,8 @@ class Network:
 
         # server callbacks
         dispatch = Dispatcher()
-        dispatch.map("/extrude_move", self.MoveNozzle)
-        dispatch.map("/just_move", self.MoveNozzle)
-        dispatch.map("/extract", self.ExtractMaterial)
+        dispatch.map("/move*", self.MoveNozzle) # /move/extrude and /move
+        dispatch.map("/extrude", self.ExtractMaterial)
         dispatch.map("/retract", self.RetractMaterial)
         dispatch.set_default_handler(lambda _: PrintManager("Received message.", 1))
         # TODO: Add other functions
@@ -62,14 +61,15 @@ class Network:
 
 
     # 
-    # Processing Callbacks
+    #   Processing Callbacks
+    #
     #
     def isPrinterConnected(self):
         return (self.printer is not None and self.printer.isconnected)
     def MoveNozzle(self, identifier, *args):
         if self.isPrinterConnected():
-            if identifier.startswith("/extrude_"):
-                self.printer.UpdateNozzlePosition(args[0], args[1], args[2], True)
+            if identifier.endswith("extrude"):
+                self.printer.UpdateNozzlePosition(args[0], args[1], args[2], True) # extrude=True
             else:
                 self.printer.UpdateNozzlePosition(args[0], args[1], args[2])
             # PrintManager("{} x={}, y={}, z={}".format(identifier, args[0], args[1], args[2]), 1)

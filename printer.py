@@ -19,11 +19,11 @@ class Printer:
         self.port = 0            # serial port
 
         # 
-        # nozzle head position
+        # nozzle head positions
         self.pos = [0, 0, 0]
         self.prev_pos = [0, 0, 0]
 
-        # 
+        # TODO
         self.bed_temp = 0
         self.bed_temp_target = 0
         self.nozzle_temp = 0
@@ -81,7 +81,7 @@ class Printer:
     def SendLine(self, line):
         if self.IsPrinterOnline():
             self.printer.send(line)
-            PrintManager("SENDING TO PRINTER: " + line, 1)
+            PrintManager("SENT TO PRINTER: " + line, 1)
         else:
             PrintManager("PRINTER IS NOT CONNECTED. FAILED TO SEND:  " + line, 4)
     #
@@ -102,14 +102,14 @@ class Printer:
     # 
     def UpdateNozzlePosition(self, _x, _y, _z, extrude_flag=False):
         self.prev_pos = self.pos
-        self.pos = [_x, _y, self.first_layer_height] # _z] 
+        self.pos = [_x, _y, _z] 
 
         self.MoveNozzle(extrude_flag)
 
 
     #
-    # Higher level functions
-    # 
+    #  Higher level functions
+    # # # # # # #  # # # # # # #
 
     #
     def Extract(self):
@@ -121,6 +121,7 @@ class Printer:
         to = self.pos
         fr = self.prev_pos
         if isextrude:
+            # jacob 594x w4
             p = [to[0]-fr[0], to[1]-fr[1], to[2]-fr[2]]
             
             l = math.sqrt(p[0]*p[0]+p[1]*p[1]+p[2]*p[2])
@@ -135,7 +136,7 @@ class Printer:
                           " Y" + "{:.{}f}".format(to[1],2) + \
                           " Z" + "{:.{}f}".format(to[2],2))
         else:
-            self.SendLine("G1 F" + str(self.print_speed) + \
+            self.SendLine("G0 F" + str(self.print_speed_high) + \
                           " X" + "{:.{}f}".format(to[0],2) + \
                           " Y" + "{:.{}f}".format(to[1],2) + \
                           " Z" + "{:.{}f}".format(to[2],2))
@@ -165,7 +166,7 @@ class Printer:
     def PreparePrinter(self):
         self.SendAutoHome()
         self.SendLine("M83") # E relative
-        self.SendLine("G90") #nice absolute 
+        self.SendLine("G90") # absolute 
         self.SendLine("G1 F300 Z"+str(self.first_layer_height)) # 
         
         # extrude initial material
@@ -177,8 +178,8 @@ class Printer:
 
 
     #
-    # Private callback functions from printer to python
-    # 
+    #   Private callback functions from printer to python
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
     def __Connected_(self):
         PrintManager("Connected printer on port {}. Preparing printer...".format(self.port), 4)
 

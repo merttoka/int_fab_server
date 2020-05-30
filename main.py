@@ -35,41 +35,39 @@ if __name__ == "__main__":
     net = Network(args.listenport, args.ip, args.port)
     net.Bind(printer)
 
-    while 1:
+    # main loop
+    while True:
+        #
+        #
 
         # OnKeyDown
         if msvcrt.kbhit():
             ch = msvcrt.getch()
-            # escape if ESC
+            # escape on ESC
             if ord(ch) == 27:
                 break
 
-            if ch == b'r':
-                printer.SendAutoHome()
-                x = 0
-                y = 0
-                z = 0
-            
-            step = 0.5
-            if ch == b'x':
-                x += step
-            if ch == b's':
-                x -= step
-            if ch == b'y':
-                y += step
-            if ch == b'h':
-                y -= step
-            if ch == b'z':
-                z += step
-            if ch == b'a':
-                z -= step
-            
-            x = constrain(x, 0,150)
-            y = constrain(y, 0,150)
-            z = constrain(z, 0,150)
-            
-            PrintManager("x={}, y={}, z={}".format(x,y,z), 1)
-            net.SendMessage([float(x),float(y),float(z)])
+            if printer.IsPrinterOnline():
+                if ch == b'r':
+                    printer.SendAutoHome()
+                    x = 0
+                    y = 0
+                    z = 0
+                
+                step = 0.5
+                if ch == b'x': x += step
+                if ch == b's': x -= step
+                if ch == b'y': y += step
+                if ch == b'h': y -= step
+                if ch == b'z': z += step
+                if ch == b'a': z -= step
+                
+                x = constrain(x, 0,220)
+                y = constrain(y, 0,220)
+                z = constrain(z, 0,220)
+                
+                PrintManager("x={}, y={}, z={}".format(x,y,z), 1)
+                net.SendMessage([float(x),float(y),float(z)])
 
     printer.Retract()
     printer.SendAutoHome()
