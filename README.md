@@ -1,7 +1,9 @@
 
 This repository acts as a mediator between [the frontend](https://github.com/merttoka/int_fab_frontend.git) and Ender 3 Pro using [Printrun](https://github.com/kliment/Printrun) module. 
 
-*Tested on Windows 10 with Python 3.7.*
+*Tested on:*
+- *Windows 10 with Python 3.7*
+- *Ubuntu 18.04 with Python 3.6.9* 
 
 **[Printrun](https://github.com/kliment/Printrun) module:**
 ```
@@ -17,7 +19,6 @@ cd Printrun
 > .\venv\Scripts\activate.bat
 > python -m pip install -r requirements.txt
 > python -m pip install Cython
-> python -m pip install sneakysnek # detect keys
 > python setup.py build_ext --inplace
 ```
 
@@ -27,13 +28,14 @@ $ python3 -m venv venv  # create an virtual environment
 $ . venv/bin/activate  # activate the virtual environment (notice the space after the dot)
 (venv) $ python -m pip install -r requirements.txt  # intall the rest of dependencies
 (venv) $ python -m pip install Cython
-(venv) $ python -m pip install sneakysnek # detect keys
 (venv) $ python setup.py build_ext --inplace
 ```
 
 #### Run 
 ```bash
 > cd .. # jump back to root directory
+
+> pip install python-osc # osc library
 
 # windows
 > python .\main.py --serial=COM#
@@ -44,5 +46,5 @@ $ python main.py --serial=/dev/ttyUSB#
 #### Keys
 `ESC` Shuts down
 `r`   Auto Home
-
+`e`   Clear material from nozzlehead (extrude on the side)
 

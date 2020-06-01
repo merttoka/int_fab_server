@@ -1,13 +1,9 @@
 
 import argparse  # parse arguments
 
-# detect keys
-from sneakysnek.recorder import Recorder
-from sneakysnek.keyboard_keys import KeyboardKey
-from sneakysnek.keyboard_event import KeyboardEvents
-
 # import files 
 from utils import *
+from keys import * 
 from printer import Printer
 from osc import Network
 
@@ -20,19 +16,8 @@ if __name__ == "__main__":
     parser.add_argument("--serial", default="COM4", help="The serial port that 3D Printer is using")
     args = parser.parse_args()
 
-    # key callback 
-    isEsc = False
-    isR   = False
-    def HandleKey(event):
-        global isEsc, isR
-        # print(event)
-        if event.event is KeyboardEvents.DOWN:
-            if event.keyboard_key == KeyboardKey.KEY_ESCAPE:
-                isEsc = True
-            elif event.keyboard_key == KeyboardKey.KEY_R:
-                isR = True
-    # record keys
-    recorder = Recorder.record(HandleKey)
+    # detect keys
+    kb = KBHit()
 
     # Start printer
     printer = Printer(args.serial)
@@ -42,16 +27,26 @@ if __name__ == "__main__":
     net.Bind(printer)
 
     # main loop
-    while not isEsc:
+    while True:
         # printer obj handles the message transfer internally
 
-        # 
-        if isR and printer.IsPrinterOnline():
-            printer.SendAutoHome()
-            PrintManager("Autohome sent", 1)
-            isR = False
-
-    recorder.stop()
+        # detect keys
+        if kb.kbhit():
+            c = kb.getch()
+            sc = str(c)
+            if ord(c) == 27: # ESC
+                break
+            elif sc == "r":
+                if printer.IsPrinterOnline():
+                    printer.SendAutoHome()
+                    PrintManager("Autohome sent", 1)
+            elif sc == "e":
+                if printer.IsPrinterOnline():
+                    printer.ExtrudeOnSide(random.random()+0.2)
+                    PrintManager("Extruding on side", 1)
+    
+    # reset keyboard
+    kb.set_normal_term()
 
     printer.Retract()
     printer.SendHigh()

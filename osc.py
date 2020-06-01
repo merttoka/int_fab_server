@@ -63,12 +63,11 @@ class Network:
     # 
     #   Processing Callbacks
     #
-    #
     def isPrinterConnected(self):
         return (self.printer is not None and self.printer.isconnected)
     def MoveNozzle(self, identifier, *args):
         if self.isPrinterConnected():
-            if identifier.endswith("extrude"):
+            if identifier is "/move/extrude":
                 self.printer.UpdateNozzlePosition(args[0], args[1], args[2], True) # extrude=True
             else:
                 self.printer.UpdateNozzlePosition(args[0], args[1], args[2])

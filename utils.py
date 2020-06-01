@@ -1,6 +1,40 @@
 
 # import re
 import math
+import random
+import sys, os
+
+# if os.name == 'posix': # mac-linux
+#     import tty        
+# elif os.name == 'nt': # windows
+#     import msvcrt 
+
+# # detect keys
+# def DetectKey():
+#     if os.name == 'posix': # mac-linux
+#         try:
+#             ch = sys.stdin.read(1)
+#             if ch:
+#                 return repr(ch), ord(ch)
+#         except IOError: pass
+#     elif os.name == 'nt': # windows
+#         if msvcrt.kbhit():
+#             ch = msvcrt.getch()
+#             return repr(ch), ord(ch)
+#     return '', 0
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #
 def constrain(val, min_val, max_val):
@@ -19,7 +53,7 @@ def constrain(val, min_val, max_val):
 # 'level' is importance of the message: [0, 4]
 def PrintManager(message, level=4): 
     level = constrain(level, 0, 4)
-    prefix = ""; 
+    prefix = ""
     if level is 4:
         prefix = "#####\t"
     elif level is 3:

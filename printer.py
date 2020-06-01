@@ -1,4 +1,3 @@
-import sys, os
 from utils import *
 
 # append sister directory to sys.path so that we can import printcore
@@ -101,6 +100,9 @@ class Printer:
 
     # 
     def UpdateNozzlePosition(self, _x, _y, _z, extrude_flag=False):
+        # if not extrude_flag:
+        #     self.pos = self.prev_pos = [_x, _y, _z] 
+        # else:
         self.prev_pos = self.pos
         self.pos = [_x, _y, _z] 
 
@@ -149,7 +151,20 @@ class Printer:
 
     #
     def SendHigh(self):
-        self.SendLine("G0 X0 Y0 Z100 E-6") 
+        self.SendLine("G0 X0 Y0 Z20 E-6") 
+
+    # 
+    def ExtrudeOnSide(self, scale=1):
+        scale = constrain(scale, 0.2, 2)
+
+        _x = scale * 10
+        _y = scale * 100
+        self.SendLine("G0 X" + "{:.{}f}".format(_x,2) +" Y" + "{:.{}f}".format(_x,2) +" Z0.4 F800")
+        self.Extract()
+        self.SendLine("G1 X" + "{:.{}f}".format(_x,2) +" Y" + "{:.{}f}".format(_y+_x,2) +" Z0.4 E8 F800")
+        self.SendLine("G1 X" + "{:.{}f}".format(_x+0.4*scale,2) +" Y" + "{:.{}f}".format(_y+_x,2) +" Z0.4 E0.02 F800")
+        self.SendLine("G1 X" + "{:.{}f}".format(_x+0.4*scale,2) +" Y" + "{:.{}f}".format(_x,2) +" Z0.4 E8 F800")
+        self.Retract()
 
     #
     # jacob 594x w4
@@ -174,11 +189,7 @@ class Printer:
         self.SendLine("G1 F300 Z"+str(self.first_layer_height)) # 
         
         # extrude initial material
-        self.SendLine("G1 X10 Y110 E8 F800")
-        self.SendLine("G1 X10.03 Y110 E8 F800")
-        self.SendLine("G1 X10.03 Y10 E8 F800")
-
-        self.Retract()
+        self.ExtrudeOnSide()
 
 
     #
@@ -189,11 +200,11 @@ class Printer:
 
         # Initialize settings on printer
         self.isconnected = True
-        self.TemperatureControl(200, 50)
+        self.TemperatureControl(201, 50)
         self.PreparePrinter()
 
     def __Receive_(self, l):
         l = l.rstrip()
 
         # TODO: parse and Send this to processing 
-        PrintManager("ACK: "+ l, 0)
+        PrintManager("ACK: "+ l, 0)   
