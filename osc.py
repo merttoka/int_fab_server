@@ -55,8 +55,8 @@ class Network:
 
     #
     # Send message to processing
-    def SendMessage(self, message):
-        self.client.send_message("/test_py", message)
+    def SendMessage(self, name, message):
+        self.client.send_message(name, message)
         # client.send_message("/filter1", [1., 2.])
 
 

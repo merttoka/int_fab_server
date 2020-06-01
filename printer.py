@@ -35,7 +35,7 @@ class Printer:
         self.layer_index = 0
 
         #
-        self.layer_height = 0.3
+        self.layer_height = 0.4
         self.nozzle_width = 0.4
         self.ret_amount = 6.0
         self.ret_speed = 1200
@@ -146,6 +146,10 @@ class Printer:
     def SendAutoHome(self):
         self.SendLine("G28") # home x y z 
         self.SendLine("G92 E0") # home extruder
+
+    #
+    def SendHigh(self):
+        self.SendLine("G0 X0 Y0 Z100 E-6") 
 
     #
     # jacob 594x w4
