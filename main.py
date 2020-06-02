@@ -1,5 +1,6 @@
 
 import argparse  # parse arguments
+import time
 
 # import files 
 from utils import *
@@ -26,28 +27,48 @@ if __name__ == "__main__":
     net = Network(args.listenport, args.ip, args.port)
     net.Bind(printer)
 
+    # keep track of time
+    starttime=time.time()
+
     # main loop
     while True:
         # printer obj handles the message transfer internally
+        # update Processing sketch about printer state
+        if time.time()-starttime > 2: # second
+            net.SendMessage("/PY/temp", [printer.bed_temp, printer.bed_temp_target, \
+                printer.nozzle_temp, printer.nozzle_temp_target])
+            # TODO: may need to send more frequently
+            net.SendMessage("/PY/n_pos", [printer.nozzle_pos[0], printer.nozzle_pos[1], printer.nozzle_pos[2]])
+            starttime = time.time()
 
-        # detect keys
-        if kb.kbhit():
-            c = kb.getch()
-            sc = str(c)
-            if ord(c) == 27: # ESC
-                break
-            elif sc == "r":
-                if printer.IsPrinterOnline():
-                    printer.SendAutoHome()
-                    PrintManager("Autohome sent", 1)
-            elif sc == "e":
-                if printer.IsPrinterOnline():
-                    printer.ExtrudeOnSide(random.random()+0.2)
-                    PrintManager("Extruding on side", 1)
+
+        # Detect keys
+        try:
+            if kb.kbhit():
+                c = kb.getch()
+                sc = str(c)
+
+                if ord(c) == 27: # ESC
+                    break
+                elif sc == "t":
+                    if printer.IsPrinterOnline():
+                        printer.TemperatureControl(200, 50)
+                        PrintManager("Temperature set to n={} b={}".format(200, 50), 1)                
+                elif sc == "r":
+                    if printer.IsPrinterOnline():
+                        printer.PreparePrinter()
+                        PrintManager("Prepare printer", 1)
+                elif sc == "e":
+                    if printer.IsPrinterOnline():
+                        printer.ExtrudeOnSide(random.random()+0.2)
+                        PrintManager("Extruding on side", 1)
+        except UnicodeDecodeError: pass
+        except KeyboardInterrupt:
+            break
     
     # reset keyboard
     kb.set_normal_term()
 
     printer.Retract()
-    printer.SendHigh()
+    printer.SendFinish()
     printer.Destroy()

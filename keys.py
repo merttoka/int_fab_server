@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+
+# https://stackoverflow.com/questions/2408560/python-nonblocking-console-input/22085679
+# https://simondlevy.academic.wlu.edu/software/
 '''
 A Python class implementing KBHIT, the standard keyboard-interrupt poller.
 Works transparently on Windows and Posix (Linux, Mac OS X).  Doesn't work
