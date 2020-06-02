@@ -3,7 +3,7 @@ This repository acts as a mediator between [the frontend](https://github.com/mer
 
 *Tested on:*
 - *Windows 10 with Python 3.7*
-- *Ubuntu 18.04 with Python 3.6.9* 
+- *Ubuntu 18.04 (in WSL) with Python 3.7* 
 
 ## Install
 ```
