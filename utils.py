@@ -41,4 +41,4 @@ def PrintManager(message, level=4):
     else:
         prefix = "    #\t"
 
-    print(prefix+" "+message)
+    print(prefix+" "+str(message))

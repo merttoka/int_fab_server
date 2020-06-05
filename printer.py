@@ -26,7 +26,7 @@ class Printer:
 
         # TODO: printer messages queue
         # correspond every line with an acknowlegment
-        self.ack_queue = queue.Queue()
+        self.message_queue = queue.Queue()
 
         #
         self.nozzle_pos = [0,0,0]
@@ -46,7 +46,7 @@ class Printer:
         self.layer_height = 0.4
         self.nozzle_width = 0.4
         self.ret_amount = 6.0
-        self.ret_speed = 1200
+        self.ret_speed = 1200 # mm/min
         self.print_speed = 500
         self.print_speed_high = 1300
 
@@ -58,7 +58,9 @@ class Printer:
     # Connects to the Ender 3 Pro
     def InitPrinter(self, port):
         self.port = port
+        self.net = None
         self.printer = printcore(port, 115200)    # port = 'COM#' in windows 
+        self.printer.errorcb = self.__Error_      # on error
         self.printer.onlinecb = self.__Connected_ # on connection
         self.printer.recvcb = self.__Receive_     # listen for messages from printer
         
@@ -83,9 +85,9 @@ class Printer:
     def SendLine(self, line):
         if self.IsPrinterOnline():
             self.printer.send(line)
-            PrintManager("SENT TO PRINTER: " + line, 1)
+            PrintManager("SENT TO PRINTER: " + line, 2)
         else:
-            PrintManager("PRINTER IS NOT CONNECTED. FAILED TO SEND:  " + line, 4)
+            PrintManager("PRINTER IS NOT CONNECTED. FAILED TO SEND:  " + line, 2)
     #
     def SendLines(self, lines):
         for line in lines:
@@ -141,15 +143,14 @@ class Printer:
                           " Y" + "{:.{}f}".format(to[1],2) + \
                           " Z" + "{:.{}f}".format(to[2],2))
         else:
-            self.SendLine("G0 F" + str(self.print_speed_high) + \
+            self.SendLine("G0 F" + str(self.print_speed) + \
                           " X" + "{:.{}f}".format(to[0],2) + \
                           " Y" + "{:.{}f}".format(to[1],2) + \
                           " Z" + "{:.{}f}".format(to[2],2))
     
     # 
     def SendAutoHome(self):
-        self.SendLine("G28") # home x y z 
-        self.SendLine("G92 E0") # home extruder
+        self.SendLine("G28") # home x y z
 
     #
     def SendFinish(self):
@@ -161,11 +162,11 @@ class Printer:
 
         _x = scale * 10
         _y = scale * 100
-        self.SendLine("G0 X" + "{:.{}f}".format(_x,2) +" Y" + "{:.{}f}".format(_x,2) +" Z0.4 F800")
+        self.SendLine("G0 X" + "{:.{}f}".format(_x,2) +" Y" + "{:.{}f}".format(_x,2) +" Z0.4 F800 ; move to first point")
         self.Extract()
-        self.SendLine("G1 X" + "{:.{}f}".format(_x,2) +" Y" + "{:.{}f}".format(_y+_x,2) +" Z0.4 E8 F800")
+        self.SendLine("G1 X" + "{:.{}f}".format(_x,2) +" Y" + "{:.{}f}".format(_y+_x,2) +" Z0.4 E1.5 F800 ; ")
         self.SendLine("G1 X" + "{:.{}f}".format(_x+0.4*scale,2) +" Y" + "{:.{}f}".format(_y+_x,2) +" Z0.4 E0.02 F800")
-        self.SendLine("G1 X" + "{:.{}f}".format(_x+0.4*scale,2) +" Y" + "{:.{}f}".format(_x,2) +" Z0.4 E8 F800")
+        self.SendLine("G1 X" + "{:.{}f}".format(_x+0.4*scale,2) +" Y" + "{:.{}f}".format(_x,2) +" Z0.4 E1.5 F800")
         self.Retract()
 
     #
@@ -180,22 +181,18 @@ class Printer:
 
     # reports temperature without heating
     def UpdateTemperature(self):
-        self.SendLine("M105")
+        self.SendLine("M105 ; request temperature readings")
     # reports nozzle position
     def UpdateNozzlePosition(self):
-        self.SendLine("M114")
+        self.SendLine("M114 ; request nozzle position")
 
     # 
     # jacob 594x w4
     def PreparePrinter(self):
         self.SendAutoHome()
-        self.SendLine("M83") # E relative
-        self.SendLine("G90") # absolute 
-        self.SendLine("G0 F300 E0 Z"+str(self.first_layer_height)) # 
-        
-        # extrude initial material
-        self.ExtrudeOnSide()
-
+        self.SendLine("G90 ; absolute XYZ") # absolute XYZ
+        self.SendLine("M83 ; relative E") # relative E
+        self.SendLine("G0 F1000 Z"+str(self.first_layer_height)+" ; move to first layer") # 
 
     #
     #   Private callback functions from printer to python
@@ -203,13 +200,25 @@ class Printer:
     def __Connected_(self):
         PrintManager("Connected printer on port {}.".format(self.port), 4)
         PrintManager("Press 'T' for temperature conrols (b=50, n=200).", 3)
-        PrintManager("      'R' for reseting printer (auto home, move to first layer, 'E'xtrude on side)", 3)
+        PrintManager("      'R' for reseting printer (auto home, move to first layer)", 3)
         PrintManager("      'E' for extruding material on the side", 3)
         
         # Initialize settings on printer
         self.isconnected = True
+        self.PreparePrinter()
         self.UpdateTemperature()
         self.UpdateNozzlePosition()
+
+    def __Error_(self, *msg):
+        msg = "".join(str(i) for i in msg)
+        PrintManager("ERROR:" + msg, 4)
+        sys.exit()
+        # if not self.settings.error_command:
+        #     return
+        # output = get_command_output(self.settings.error_command, {"$m": msg})
+        # if output:
+        #     self.log("Error command output:")
+        #     self.log(output.rstrip())
 
     # Message from printer
     def __Receive_(self, l):
@@ -221,23 +230,26 @@ class Printer:
 
         if not self.recvcb_actions(l):
             report_type = self.recvcb_report(l)
-            #
-            PrintManager("ReportType={}".format(report_type), 1)
             if report_type & REPORT_POS:
                 m114_res = gcoder.m114_exp.findall(l)
                 self.nozzle_pos = [float(m114_res[0][1]), float(m114_res[1][1]), float(m114_res[2][1])]
+                # if self.net is not None: self.net.SendMessage("/PY/n_pos", [self.nozzle_pos[0], self.nozzle_pos[1], self.nozzle_pos[2]])
                 #
                 PrintManager("UPDATE NOZZLE POS: [{},{},{}]".format(self.nozzle_pos[0], self.nozzle_pos[1], self.nozzle_pos[2]), 0)
-            if report_type & REPORT_TEMP:
+            elif report_type & REPORT_TEMP:
                 self.update_tempreading(l)
+                # if self.net is not  None: self.net.SendMessage("/PY/temp", [self.bed_temp, self.bed_temp_target, self.nozzle_temp, self.nozzle_temp_target])
                 #
                 PrintManager("UPDATE TEMP READINGS: b={}/{} n={}/{}".format(self.bed_temp, self.bed_temp_target, self.nozzle_temp, self.nozzle_temp_target), 0)
+            
             if not lineignorepattern.match(l) and l[:4] != "wait" \
                  and (report_type == REPORT_NONE or report_type & REPORT_MANUAL):
                 if l[:5] == "echo:":
                     l = l[5:].lstrip()
-                #
-                PrintManager("\r" + l.ljust(15), 1)
+                # TODO: HANDLE "Unknown command:" <-- here
+                PrintManager(l.ljust(15), 1)
+
+
 
     ## PARSE INCOMING MESSAGE
     def recvcb_report(self, l):
@@ -245,60 +257,44 @@ class Printer:
         if "ok C:" in l or "Count" in l \
            or ("X:" in l and len(gcoder.m114_exp.findall(l)) == 6):
             isreport = REPORT_POS
-            # if self.userm114 > 0:
-            #     self.userm114 -= 1
-            #     isreport |= REPORT_MANUAL
         if "ok T:" in l or tempreading_exp.findall(l):
             self.tempreadings = l
             isreport = REPORT_TEMP
-            # if self.userm105 > 0:
-            #     self.userm105 -= 1
-            #     isreport |= REPORT_MANUAL
-            # else:
-            #     self.m105_waitcycles = 0
         return isreport
 
     def recvcb_actions(self, l):
         if l.startswith("!!"):
-            # self.do_pause(None)
+            self.PausePrint()
+
             msg = l.split(" ", 1)
             #
-            PrintManager("recvcb actions !! " + msg, 3)
-            # if len(msg) > 1 and self.silent is False: self.logError(msg[1].ljust(15))
-            # sys.stdout.write(self.promptf())
-            # sys.stdout.flush()
+            PrintManager("recvcb actions !! " + msg, 0)
             return True
         elif l.startswith("//"):
             command = l.split(" ", 1)
             #
-            PrintManager("recvcb actions // " + command, 3)
+            PrintManager("recvcb actions // " + command, 0)
             if len(command) > 1:
                 command = command[1]
                 #
-                PrintManager("Received command {}".format(command), 2)
+                PrintManager("Received command {}".format(command), 0)
                 command = command.split(":")
                 if len(command) == 2 and command[0] == "action":
                     command = command[1]
                     if command == "pause":
                         #
-                        PrintManager("PAUSE", 1)
-                        # self.do_pause(None)
-                        # sys.stdout.write(self.promptf())
-                        # sys.stdout.flush()
+                        PrintManager("PAUSE", 0)
+                        self.PausePrint()
                         return True
                     elif command == "resume":
                         #
-                        PrintManager("RESUME", 1)
-                        # self.do_resume(None)
-                        # sys.stdout.write(self.promptf())
-                        # sys.stdout.flush()
+                        PrintManager("RESUME", 0)
+                        self.ResumePrint()
                         return True
                     elif command == "disconnect":
                         #
-                        PrintManager("DISCONNECT", 1)
-                        # self.do_disconnect(None)
-                        # sys.stdout.write(self.promptf())
-                        # sys.stdout.flush()
+                        PrintManager("DISCONNECT", 0)
+                        self.Destroy()
                         return True
 
     ## UPDATE TEMPERATURE READINGS

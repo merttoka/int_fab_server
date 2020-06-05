@@ -53,6 +53,6 @@ $ python main.py --serial=/dev/ttyUSB#
 #### Key bindings
 `ESC` Shuts down
 `T`   Set temperature to 200/50
-`R`   Auto Home - Move to first layer - extrude on side
-`E`   Clear material from nozzlehead (extrude on the side)
+`R`   Auto Home & Move to first layer
+`E`   Clear material from nozzlehead (extrudes on the side)
 

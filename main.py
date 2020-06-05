@@ -28,19 +28,18 @@ if __name__ == "__main__":
     net.Bind(printer)
 
     # keep track of time
-    starttime=time.time()
+    # starttime=time.time()
 
     # main loop
     while True:
         # printer obj handles the message transfer internally
         # update Processing sketch about printer state
-        if time.time()-starttime > 2: # second
-            net.SendMessage("/PY/temp", [printer.bed_temp, printer.bed_temp_target, \
-                printer.nozzle_temp, printer.nozzle_temp_target])
-            # TODO: may need to send more frequently
-            net.SendMessage("/PY/n_pos", [printer.nozzle_pos[0], printer.nozzle_pos[1], printer.nozzle_pos[2]])
-            starttime = time.time()
-
+        # if time.time()-starttime > 2: # second
+        #     net.SendMessage("/PY/temp", [printer.bed_temp, printer.bed_temp_target, \
+        #         printer.nozzle_temp, printer.nozzle_temp_target])
+        #     # TODO: may need to send more frequently
+        #     # net.SendMessage("/PY/n_pos", [printer.nozzle_pos[0], printer.nozzle_pos[1], printer.nozzle_pos[2]])
+        #     starttime = time.time()
 
         # Detect keys
         try:
@@ -62,6 +61,12 @@ if __name__ == "__main__":
                     if printer.IsPrinterOnline():
                         printer.ExtrudeOnSide(random.random()+0.2)
                         PrintManager("Extruding on side", 1)
+                # DEBUG
+                elif sc == "d":
+                    if printer.IsPrinterOnline():
+                        printer.SendLine("GG0 blahblah\n G0 Y180\nGG1 ahsdas\nG0 Y200")
+                elif sc == "q":
+                    PrintManager(printer.printer.priqueue.qsize(), 2)
         except UnicodeDecodeError: pass
         except KeyboardInterrupt:
             break

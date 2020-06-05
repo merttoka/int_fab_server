@@ -37,6 +37,7 @@ class Network:
         dispatch.map("/move*", self.MoveNozzle) # /move/extrude and /move
         dispatch.map("/extrude", self.ExtractMaterial)
         dispatch.map("/retract", self.RetractMaterial)
+        dispatch.map("/req/nozzle_pos", self.RequestNozzlePosition)
         dispatch.set_default_handler(lambda _: PrintManager("Received message.", 1))
         # TODO: Add other functions
 
@@ -67,6 +68,10 @@ class Network:
         return (self.printer is not None and self.printer.isconnected)
     def MoveNozzle(self, identifier, *args):
         if self.isPrinterConnected():
+            speed = self.printer.print_speed
+            try: speed = float(args[3])
+            except: pass
+            self.printer.print_speed = speed
             if identifier == "/move/extrude":
                 self.printer.UpdatePosition(args[0], args[1], args[2], True) # extrude=True
             else:
@@ -80,3 +85,7 @@ class Network:
     def RetractMaterial(self, identifier, *args):
         if self.isPrinterConnected():
             self.printer.Retract()
+    #
+    def RequestNozzlePosition(self, identifier, *args):
+        if self.isPrinterConnected():
+            self.printer.UpdateNozzlePosition()
