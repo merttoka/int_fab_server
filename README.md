@@ -3,9 +3,9 @@ This repository acts as a mediator between [the frontend](https://github.com/mer
 
 *Tested on:*
 - *Windows 10 with Python 3.7*
-- *Ubuntu 18.04 with Python 3.6.9* 
+- *Ubuntu 18.04 (in WSL) with Python 3.7* 
 
-### Install
+## Install
 ```
 git clone https://github.com/merttoka/int_fab_server.git
 cd int_fab_server
@@ -16,7 +16,8 @@ git submodule update
 cd Printrun 
 ```
 
-#### Printrun 
+### Printrun 
+
 **Windows (powershell):**
 ```powershell
 > py -3 -m venv venv
@@ -35,7 +36,7 @@ $ . venv/bin/activate  # activate the virtual environment (notice the space afte
 (venv) $ python setup.py build_ext --inplace
 ```
 
-#### Run 
+## Run 
 ```bash
 > cd .. # jump back to root directory
 
@@ -47,8 +48,9 @@ $ . venv/bin/activate  # activate the virtual environment (notice the space afte
 $ python main.py --serial=/dev/ttyUSB#
 ```
 
-*Note:* You can find the serial port in your system settings.
-*Note 2:* MacOS users might need to allow Python in accesibility settings to be able to use keybindings.
+- *Note:* You can find the serial port in your system settings.
+
+- *Note 2:* MacOS users might need to allow Python in accesibility settings to be able to use keybindings.
 
 #### Key bindings
 `ESC` Shuts down
