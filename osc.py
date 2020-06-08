@@ -73,9 +73,9 @@ class Network:
             except: pass
             self.printer.print_speed = speed
             if identifier == "/move/extrude":
-                self.printer.UpdatePosition(args[0], args[1], args[2], True) # extrude=True
+                self.printer.UpdatePosition(args[0], args[1], args[2], args[3], True) # extrude=True
             else:
-                self.printer.UpdatePosition(args[0], args[1], args[2])
+                self.printer.UpdatePosition(args[0], args[1], args[2], args[3])
             # PrintManager("{} x={}, y={}, z={}".format(identifier, args[0], args[1], args[2]), 1)
     #
     def ExtractMaterial(self, identifier, *args):

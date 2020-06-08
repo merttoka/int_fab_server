@@ -104,12 +104,12 @@ class Printer:
         return "G1 F" + str(speed) + " E" + str(sign * amount) + mes
 
     # 
-    def UpdatePosition(self, _x, _y, _z, extrude_flag=False):
+    def UpdatePosition(self, _x, _y, _z, _speed, extrude_flag=False):
         if not extrude_flag:
-            self.pos = self.prev_pos = [_x, _y, _z] 
+            self.pos = self.prev_pos = [_x, _y, _z, _speed] 
         else:
             self.prev_pos = self.pos
-            self.pos = [_x, _y, _z] 
+            self.pos = [_x, _y, _z, _speed] 
 
         self.MoveNozzle(extrude_flag)
 
@@ -137,13 +137,15 @@ class Printer:
             
             e = numerator / denominator
             
-            self.SendLine("G1 F" + str(self.print_speed) + \
-                          " E"+ "{:.{}f}".format(e,8) + \
+            self.SendLine("M106")
+            self.SendLine("G1 F" + "{:.{}f}".format(to[3],2) + \
+                          " E"+ "{:.{}f}".format(2*e,8) + \
                           " X" + "{:.{}f}".format(to[0],2) + \
                           " Y" + "{:.{}f}".format(to[1],2) + \
                           " Z" + "{:.{}f}".format(to[2],2))
         else:
-            self.SendLine("G0 F" + str(self.print_speed) + \
+            self.SendLine("M107")
+            self.SendLine("G0 F" + "{:.{}f}".format(to[3],2)+ \
                           " X" + "{:.{}f}".format(to[0],2) + \
                           " Y" + "{:.{}f}".format(to[1],2) + \
                           " Z" + "{:.{}f}".format(to[2],2))
@@ -158,15 +160,15 @@ class Printer:
 
     # 
     def ExtrudeOnSide(self, scale=1):
-        scale = constrain(scale, 0.2, 2)
+        scale = 2  #constrain(scale, 0.2, 2)
 
-        _x = scale * 10
-        _y = scale * 100
+        _x = 10
+        _y = 200
         self.SendLine("G0 X" + "{:.{}f}".format(_x,2) +" Y" + "{:.{}f}".format(_x,2) +" Z0.4 F800 ; move to first point")
         self.Extract()
-        self.SendLine("G1 X" + "{:.{}f}".format(_x,2) +" Y" + "{:.{}f}".format(_y+_x,2) +" Z0.4 E1.5 F800 ; ")
-        self.SendLine("G1 X" + "{:.{}f}".format(_x+0.4*scale,2) +" Y" + "{:.{}f}".format(_y+_x,2) +" Z0.4 E0.02 F800")
-        self.SendLine("G1 X" + "{:.{}f}".format(_x+0.4*scale,2) +" Y" + "{:.{}f}".format(_x,2) +" Z0.4 E1.5 F800")
+        self.SendLine("G1 X" + "{:.{}f}".format(_x,2) +" Y" + "{:.{}f}".format(_y+_x,2) +" Z0.4 E10 F800 ; ")
+        self.SendLine("G1 X" + "{:.{}f}".format(_x+0.4*scale,2) +" Y" + "{:.{}f}".format(_y+_x,2) +" Z0.4 E0.2 F800")
+        self.SendLine("G1 X" + "{:.{}f}".format(_x+0.4*scale,2) +" Y" + "{:.{}f}".format(_x,2) +" Z0.4 E10 F800")
         self.Retract()
 
     #
