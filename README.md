@@ -1,9 +1,21 @@
 
-This repository acts as a mediator between [the frontend](https://github.com/merttoka/int_fab_frontend.git) and Ender 3 Pro using [Printrun](https://github.com/kliment/Printrun) module. 
+This software acts as a mediator between [the frontend](https://github.com/merttoka/int_fab_frontend.git) and Ender 3 Pro using [Printrun](https://github.com/kliment/Printrun) module. It listens to OSC commands and sends messages for print. 
 
-*Tested on:*
-- *Windows 10 with Python 3.7*
-- *Ubuntu 18.04 (in WSL) with Python 3.7* 
+## Usage
+#### Key bindings
+`ESC` Shuts down
+`T`   Set temperature to 200/50
+`R`   Auto Home & Move to first layer
+`E`   Clear material from nozzlehead (extrudes on the side)
+
+#### Listeners
+| Identifier      	| Parameters 	| Description                                                                     	|
+|-----------------	|------------	|---------------------------------------------------------------------------------	|
+| `/move/extrude` 	| XYZF       	| Moves the nozzle head to XYZ (mm) with F rate (mm/min) while extruding material 	|
+| `/move`         	| XYZF       	| Moves the nozzle head to XYZ (mm) with F rate (mm/min)                          	|
+| `/extrude`      	| -          	| Extrudes some filament in-place                                                 	|
+| `/retract`      	| -          	| Retracts some filament in-place                                                 	|
+
 
 ## Install
 ```
@@ -16,7 +28,7 @@ git submodule update
 cd Printrun 
 ```
 
-### Printrun 
+#### Printrun 
 
 **Windows (powershell):**
 ```powershell
@@ -48,13 +60,17 @@ $ . venv/bin/activate  # activate the virtual environment (notice the space afte
 $ python main.py --serial=/dev/ttyUSB#
 ```
 
+```powershell
+# arguments: ip and port number of OSC server, listen port, and printer serial port
+> python .\main.py --ip=127.0.0.1 --port=12000  --listenport=5876 --serial=COM4
+```
+
+
 - *Note:* You can find the serial port in your system settings.
 
 - *Note 2:* MacOS users might need to allow Python in accesibility settings to be able to use keybindings.
 
-#### Key bindings
-`ESC` Shuts down
-`T`   Set temperature to 200/50
-`R`   Auto Home & Move to first layer
-`E`   Clear material from nozzlehead (extrudes on the side)
 
+*Tested on:*
+- *Windows 10 with Python 3.7*
+- *Ubuntu 18.04 (in WSL) with Python 3.7* 

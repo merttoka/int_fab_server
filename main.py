@@ -61,12 +61,6 @@ if __name__ == "__main__":
                     if printer.IsPrinterOnline():
                         printer.ExtrudeOnSide(random.random()+0.2)
                         PrintManager("Extruding on side", 1)
-                # DEBUG
-                elif sc == "d":
-                    if printer.IsPrinterOnline():
-                        printer.SendLine("GG0 blahblah\n G0 Y180\nGG1 ahsdas\nG0 Y200")
-                elif sc == "q":
-                    PrintManager(printer.printer.priqueue.qsize(), 2)
         except UnicodeDecodeError: pass
         except KeyboardInterrupt:
             break
