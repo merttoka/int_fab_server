@@ -200,11 +200,13 @@ class Printer:
     #   Private callback functions from printer to python
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
     def __Connected_(self):
+        PrintManager("", 4)
         PrintManager("Connected printer on port {}.".format(self.port), 4)
         PrintManager("Press 'T' for temperature conrols (b=50, n=200).", 3)
         PrintManager("      'R' for reseting printer (auto home, move to first layer)", 3)
         PrintManager("      'E' for extruding material on the side", 3)
-        
+        PrintManager("", 4)
+
         # Initialize settings on printer
         self.isconnected = True
         self.PreparePrinter()
@@ -228,7 +230,7 @@ class Printer:
 
         # ack_queue.put
         # TODO: parse and Send this to processing 
-        PrintManager("ACK: "+ l, 1)   
+        # PrintManager("ACK: "+ l, 1)   
 
         if not self.recvcb_actions(l):
             report_type = self.recvcb_report(l)

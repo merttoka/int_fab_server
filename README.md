@@ -35,7 +35,7 @@ cd Printrun
 
 #### Printrun 
 
-**Windows (powershell):**
+*Windows (powershell):*
 ```powershell
 > py -3 -m venv venv
 > .\venv\Scripts\activate.bat
@@ -44,7 +44,7 @@ cd Printrun
 > python setup.py build_ext --inplace
 ```
 
-**MacOS (terminal):**
+*MacOS (terminal):*
 ```bash
 $ python3 -m venv venv  # create an virtual environment
 $ . venv/bin/activate  # activate the virtual environment (notice the space after the dot)
