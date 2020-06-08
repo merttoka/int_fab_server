@@ -1,5 +1,8 @@
 
-This software acts as a mediator between [the frontend](https://github.com/merttoka/int_fab_frontend.git) and Ender 3 Pro using [Printrun](https://github.com/kliment/Printrun) module. It listens to OSC commands and sends messages for print. 
+# Interactive Drawing Interface for Digital Fabrication (OSC Controller)
+
+This software acts as a mediator between [the frontend](https://github.com/merttoka/int_fab_frontend.git) and Ender 3 Pro using [Printrun](https://github.com/kliment/Printrun) module. It listens to below OSC commands and sends messages for print. 
+Started development as the final project for MAT594X Computational Fabrication at UC Santa Barbara.
 
 ## Usage
 #### Key bindings
