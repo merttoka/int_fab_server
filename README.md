@@ -6,10 +6,12 @@ Started development as the final project for MAT594X Computational Fabrication a
 
 ## Usage
 #### Key bindings
-`ESC` Shuts down
-`T`   Set temperature to 200/50
-`R`   Auto Home & Move to first layer
-`E`   Clear material from nozzlehead (extrudes on the side)
+| Key   	| Description                                           	|
+|-------	|-------------------------------------------------------	|
+| `esc` 	| Shuts down                                            	|
+| `t`   	| Set temperature to 200/50                             	|
+| `r`   	| Auto Home and move to first layer                     	|
+| `e`   	| Clear material from nozzlehead (extrudes on the side) 	|
 
 #### Listeners
 | Identifier      	| Parameters 	| Description                                                                     	|
