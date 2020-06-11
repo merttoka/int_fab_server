@@ -118,14 +118,14 @@ class Printer:
 
     #
     def Extract(self):
-        self.SendLine("M106 ; fan full speed") 
+        self.SendLine("M106 S200; fan speed almost full") 
         self.SendLine("G0 F1500 Z" + "{:.{}f}".format(self.current_height,2)) ## pull back a bit
         self.SendLine(self.MakeRetraction(self.ret_amount, self.ret_speed, 1))
     def Retract(self):
         self.SendLine("G0 F1500 Z" + "{:.{}f}".format(self.current_height+0.5,2)) ## pull back a bit
         self.SendLine(self.MakeRetraction(self.ret_amount, self.ret_speed, -1))
 
-        self.SendLine("M106 S128 ; fan half speed") 
+        self.SendLine("M106 ; fan full speed") 
     #
     def MoveNozzle(self, isextrude=False):
         to = self.pos
@@ -146,6 +146,7 @@ class Printer:
                           " Y" + "{:.{}f}".format(to[1],2) + \
                           " Z" + "{:.{}f}".format(to[2],2))
         else:
+            self.SendLine("M107 ; turn off fans") 
             self.SendLine("G0 F" + "{:.{}f}".format(to[3],2)+ \
                           " X" + "{:.{}f}".format(to[0],2) + \
                           " Y" + "{:.{}f}".format(to[1],2) + \
@@ -214,7 +215,7 @@ class Printer:
 
         # Initialize settings on printer
         self.isconnected = True
-        self.SendLine("M117 the Mediator") # message
+        self.SendLine("M117 ## the Mediator") # message
         self.PreparePrinter()
         self.UpdateTemperature()
         self.UpdateNozzlePosition()
