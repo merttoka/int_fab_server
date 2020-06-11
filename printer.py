@@ -7,8 +7,6 @@ sys.path.append(os.path.abspath('Printrun/'))
 from printrun.printcore import printcore
 from printrun import gcoder
 
-import queue
-
 class Printer:
 
     #
@@ -24,10 +22,6 @@ class Printer:
         self.pos = [0, 0, 0]
         self.prev_pos = [0, 0, 0]
 
-        # TODO: printer messages queue
-        # correspond every line with an acknowlegment
-        self.message_queue = queue.Queue()
-
         #
         self.nozzle_pos = [0,0,0]
 
@@ -37,11 +31,6 @@ class Printer:
         self.nozzle_temp = 0
         self.nozzle_temp_target = 0
 
-        # 
-        self.first_layer_height = 0.4
-        self.current_height = self.first_layer_height
-        self.layer_index = 0
-
         #
         self.layer_height = 0.4
         self.nozzle_width = 0.4
@@ -50,6 +39,11 @@ class Printer:
         self.print_speed = 500
         self.print_speed_high = 1300
 
+        #
+        self.current_height = self.layer_height
+
+        #
+        self.report_parameters = True
 
         #
         # starts the printer connection
@@ -63,7 +57,7 @@ class Printer:
         self.printer.errorcb = self.__Error_      # on error
         self.printer.onlinecb = self.__Connected_ # on connection
         self.printer.recvcb = self.__Receive_     # listen for messages from printer
-        
+ 
     #         
     def Destroy(self):
         self.isconnected = False
@@ -105,13 +99,17 @@ class Printer:
 
     # 
     def UpdatePosition(self, _x, _y, _z, _speed, extrude_flag=False):
-        if not extrude_flag:
-            self.pos = self.prev_pos = [_x, _y, _z, _speed] 
-        else:
-            self.prev_pos = self.pos
-            self.pos = [_x, _y, _z, _speed] 
+        if not math.isnan(float(_x)) and \
+            not math.isnan(float(_y)) and \
+            not math.isnan(float(_z)) and \
+            not math.isnan(float(_speed)):
+            if not extrude_flag:
+                self.pos = self.prev_pos = [float(_x), float(_y), float(_z), float(_speed)] 
+            else:
+                self.prev_pos = self.pos
+                self.pos = [float(_x), float(_y), float(_z), float(_speed)] 
 
-        self.MoveNozzle(extrude_flag)
+            self.MoveNozzle(extrude_flag)
 
 
     #
@@ -120,9 +118,14 @@ class Printer:
 
     #
     def Extract(self):
+        self.SendLine("M106 ; fan full speed") 
+        self.SendLine("G0 F1500 Z" + "{:.{}f}".format(self.current_height,2)) ## pull back a bit
         self.SendLine(self.MakeRetraction(self.ret_amount, self.ret_speed, 1))
     def Retract(self):
+        self.SendLine("G0 F1500 Z" + "{:.{}f}".format(self.current_height+0.5,2)) ## pull back a bit
         self.SendLine(self.MakeRetraction(self.ret_amount, self.ret_speed, -1))
+
+        self.SendLine("M106 S128 ; fan half speed") 
     #
     def MoveNozzle(self, isextrude=False):
         to = self.pos
@@ -137,18 +140,17 @@ class Printer:
             
             e = numerator / denominator
             
-            self.SendLine("M106")
             self.SendLine("G1 F" + "{:.{}f}".format(to[3],2) + \
-                          " E"+ "{:.{}f}".format(2*e,8) + \
+                          " E"+ "{:.{}f}".format(e,8) + \
                           " X" + "{:.{}f}".format(to[0],2) + \
                           " Y" + "{:.{}f}".format(to[1],2) + \
                           " Z" + "{:.{}f}".format(to[2],2))
         else:
-            self.SendLine("M107")
             self.SendLine("G0 F" + "{:.{}f}".format(to[3],2)+ \
                           " X" + "{:.{}f}".format(to[0],2) + \
                           " Y" + "{:.{}f}".format(to[1],2) + \
                           " Z" + "{:.{}f}".format(to[2],2))
+        self.current_height = to[2]
     
     # 
     def SendAutoHome(self):
@@ -159,17 +161,20 @@ class Printer:
         self.SendLine("G0 X0 Y200 Z30 E-6") 
 
     # 
-    def ExtrudeOnSide(self, scale=1):
-        scale = 2  #constrain(scale, 0.2, 2)
-
-        _x = 10
-        _y = 200
-        self.SendLine("G0 X" + "{:.{}f}".format(_x,2) +" Y" + "{:.{}f}".format(_x,2) +" Z0.4 F800 ; move to first point")
-        self.Extract()
-        self.SendLine("G1 X" + "{:.{}f}".format(_x,2) +" Y" + "{:.{}f}".format(_y+_x,2) +" Z0.4 E10 F800 ; ")
-        self.SendLine("G1 X" + "{:.{}f}".format(_x+0.4*scale,2) +" Y" + "{:.{}f}".format(_y+_x,2) +" Z0.4 E0.2 F800")
-        self.SendLine("G1 X" + "{:.{}f}".format(_x+0.4*scale,2) +" Y" + "{:.{}f}".format(_x,2) +" Z0.4 E10 F800")
-        self.Retract()
+    def ExtrudeOnSide(self):
+        self.SendLine("G92 E0 ; Reset Extruder")
+        self.SendLine("G28 ; Home all axes")
+        self.SendLine("G1 Z2.0 F3000 ; Move Z Axis up little to prevent scratching of Heat Bed")
+        self.SendLine("G1 X0.1 Y20 Z0.3 F5000.0 ; Move to start position")
+        self.SendLine("G1 X0.1 Y200.0 Z0.3 F1500.0 E15 ; Draw the first line")
+        self.SendLine("G1 X0.4 Y200.0 Z0.3 F5000.0 ; Move to side a little")
+        self.SendLine("G1 X0.4 Y20 Z0.3 F1500.0 E30 ; Draw the second line")
+        self.SendLine("G92 E0 ; Reset Extruder")
+        self.SendLine("G1 Z2.0 F3000 ; Move Z Axis up little to prevent scratching of Heat Bed")
+        self.SendLine("G1 X5 Y20 Z0.3 F5000.0 ; Move over to prevent blob squish")
+        self.SendLine("G92 E0")
+        self.SendLine("G92 E0")
+        self.SendLine("G1 F2700 E-5")
 
     #
     # jacob 594x w4
@@ -194,7 +199,7 @@ class Printer:
         self.SendAutoHome()
         self.SendLine("G90 ; absolute XYZ") # absolute XYZ
         self.SendLine("M83 ; relative E") # relative E
-        self.SendLine("G0 F1000 Z"+str(self.first_layer_height)+" ; move to first layer") # 
+        self.SendLine("G0 F1000 Z"+str(self.layer_height)+" ; move to first layer") # 
 
     #
     #   Private callback functions from printer to python
@@ -209,6 +214,7 @@ class Printer:
 
         # Initialize settings on printer
         self.isconnected = True
+        self.SendLine("M117 the Mediator") # message
         self.PreparePrinter()
         self.UpdateTemperature()
         self.UpdateNozzlePosition()
@@ -237,12 +243,12 @@ class Printer:
             if report_type & REPORT_POS:
                 m114_res = gcoder.m114_exp.findall(l)
                 self.nozzle_pos = [float(m114_res[0][1]), float(m114_res[1][1]), float(m114_res[2][1])]
-                # if self.net is not None: self.net.SendMessage("/PY/n_pos", [self.nozzle_pos[0], self.nozzle_pos[1], self.nozzle_pos[2]])
+                self.report_parameters = True # sends report to processing
                 #
                 PrintManager("UPDATE NOZZLE POS: [{},{},{}]".format(self.nozzle_pos[0], self.nozzle_pos[1], self.nozzle_pos[2]), 0)
             elif report_type & REPORT_TEMP:
                 self.update_tempreading(l)
-                # if self.net is not  None: self.net.SendMessage("/PY/temp", [self.bed_temp, self.bed_temp_target, self.nozzle_temp, self.nozzle_temp_target])
+                self.report_parameters = True # sends report to processing
                 #
                 PrintManager("UPDATE TEMP READINGS: b={}/{} n={}/{}".format(self.bed_temp, self.bed_temp_target, self.nozzle_temp, self.nozzle_temp_target), 0)
             
@@ -251,7 +257,7 @@ class Printer:
                 if l[:5] == "echo:":
                     l = l[5:].lstrip()
                 # TODO: HANDLE "Unknown command:" <-- here
-                PrintManager(l.ljust(15), 1)
+                PrintManager("\n"+l.ljust(15), 1)
 
 
 

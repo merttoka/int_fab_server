@@ -1,6 +1,5 @@
 
 import argparse  # parse arguments
-import time
 
 # import files 
 from utils import *
@@ -27,19 +26,18 @@ if __name__ == "__main__":
     net = Network(args.listenport, args.ip, args.port)
     net.Bind(printer)
 
-    # keep track of time
-    # starttime=time.time()
-
     # main loop
     while True:
+
         # printer obj handles the message transfer internally
         # update Processing sketch about printer state
-        # if time.time()-starttime > 2: # second
-        #     net.SendMessage("/PY/temp", [printer.bed_temp, printer.bed_temp_target, \
-        #         printer.nozzle_temp, printer.nozzle_temp_target])
-        #     # TODO: may need to send more frequently
-        #     # net.SendMessage("/PY/n_pos", [printer.nozzle_pos[0], printer.nozzle_pos[1], printer.nozzle_pos[2]])
-        #     starttime = time.time()
+        if printer.report_parameters:
+            net.SendMessage("/PY/temp", [printer.bed_temp, printer.bed_temp_target, \
+                printer.nozzle_temp, printer.nozzle_temp_target])
+            net.SendMessage("/PY/n_pos", [printer.nozzle_pos[0], printer.nozzle_pos[1], printer.nozzle_pos[2]])
+            net.SendMessage("/PY/connected", [int(printer.IsPrinterOnline())])
+
+            printer.report_parameters = False
 
         # Detect keys
         try:
@@ -59,12 +57,15 @@ if __name__ == "__main__":
                         PrintManager("Prepare printer", 1)
                 elif sc == "e":
                     if printer.IsPrinterOnline():
-                        printer.ExtrudeOnSide(random.random()+0.2)
+                        printer.ExtrudeOnSide()
                         PrintManager("Extruding on side", 1)
+
         except UnicodeDecodeError: pass
         except KeyboardInterrupt:
             break
     
+    net.SendMessage("/PY/connected", [0])
+
     # reset keyboard
     kb.set_normal_term()
 
