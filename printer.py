@@ -122,10 +122,10 @@ class Printer:
         self.SendLine("G0 F1500 Z" + "{:.{}f}".format(self.current_height,2)) ## pull back a bit
         self.SendLine(self.MakeRetraction(self.ret_amount, self.ret_speed, 1))
     def Retract(self):
+        self.SendLine("M106 ; fan full speed") # useful in between multiple layers
         self.SendLine("G0 F1500 Z" + "{:.{}f}".format(self.current_height+0.5,2)) ## pull back a bit
         self.SendLine(self.MakeRetraction(self.ret_amount, self.ret_speed, -1))
-
-        self.SendLine("M106 ; fan full speed") 
+        
     #
     def MoveNozzle(self, isextrude=False):
         to = self.pos
@@ -147,10 +147,19 @@ class Printer:
                           " Z" + "{:.{}f}".format(to[2],2))
         else:
             self.SendLine("M107 ; turn off fans") 
-            self.SendLine("G0 F" + "{:.{}f}".format(to[3],2)+ \
-                          " X" + "{:.{}f}".format(to[0],2) + \
-                          " Y" + "{:.{}f}".format(to[1],2) + \
-                          " Z" + "{:.{}f}".format(to[2],2))
+            # break motion into two parts: XY and Z
+            if to[2] <= self.current_height:
+                self.SendLine("G0 F" + "{:.{}f}".format(to[3],2)+ \
+                            " X" + "{:.{}f}".format(to[0],2) + \
+                            " Y" + "{:.{}f}".format(to[1],2))
+                self.SendLine("G0 F" + "{:.{}f}".format(to[3],2)+ \
+                            " Z" + "{:.{}f}".format(to[2],2))
+            else:
+                self.SendLine("G0 F" + "{:.{}f}".format(to[3],2)+ \
+                            " Z" + "{:.{}f}".format(to[2],2))
+                self.SendLine("G0 F" + "{:.{}f}".format(to[3],2)+ \
+                            " X" + "{:.{}f}".format(to[0],2) + \
+                            " Y" + "{:.{}f}".format(to[1],2))
         self.current_height = to[2]
     
     # 
