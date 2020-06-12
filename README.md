@@ -1,8 +1,8 @@
 
 # Interactive Drawing Interface for Digital Fabrication (OSC Controller)
 
-This software acts as a mediator between [the frontend](https://github.com/merttoka/int_fab_frontend.git) and Ender 3 Pro using [Printrun](https://github.com/kliment/Printrun) module. It listens to below OSC commands and sends messages for print. 
-Started development as the final project for MAT594X Computational Fabrication at UC Santa Barbara.
+This software acts as a mediator between [the frontend](https://github.com/merttoka/materializer) and Ender 3 Pro using [Printrun](https://github.com/kliment/Printrun) module. It listens to below key shortcuts and OSC messages to issue print instructions to the 3D printer. 
+Started development as the final project for MAT594X Computational Fabrication @ UC Santa Barbara.
 
 ## Usage
 #### Key bindings
@@ -18,9 +18,11 @@ Started development as the final project for MAT594X Computational Fabrication a
 |-----------------	|------------	|---------------------------------------------------------------------------------	|
 | `/move/extrude` 	| XYZF       	| Moves the nozzle head to XYZ (mm) with F rate (mm/min) while extruding material 	|
 | `/move`         	| XYZF       	| Moves the nozzle head to XYZ (mm) with F rate (mm/min)                          	|
-| `/extrude`      	| -          	| Extrudes some filament in-place                                                 	|
-| `/retract`      	| -          	| Retracts some filament in-place                                                 	|
-
+| `/extrude`      	| -          	| Extrudes some filament in-place and hop down                                                 	|
+| `/retract`      	| -          	| Retracts some filament and hop up a little                                        |
+| `/req/nozzle_pos`	| -          	| Echoes nozzle position back on (`/PY/n_pos XYZ`)                                	|
+| `TODO`           	| -          	| Echoes nozzle temperatures back on (`/PY/temp BBNN` -- bed_current, bed_target, ...)|
+| `TODO`          	| -          	| Echoes printer connection status (`/PY/connected T`) |
 
 ## Install
 ```
@@ -72,10 +74,11 @@ $ python main.py --serial=/dev/ttyUSB#
 
 
 - *Note:* You can find the serial port in your system settings.
-
 - *Note 2:* MacOS users might need to allow Python in accesibility settings to be able to use keybindings.
 
 
-*Tested on:*
+**Tested on:**
 - *Windows 10 with Python 3.7*
 - *Ubuntu 18.04 (in WSL) with Python 3.7* 
+
+- *Ender 3 Pro*
