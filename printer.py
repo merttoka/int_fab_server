@@ -224,10 +224,10 @@ class Printer:
 
         # Initialize settings on printer
         self.isconnected = True
-        self.SendLine("M117 ## the Mediator") # message
         self.PreparePrinter()
         self.UpdateTemperature()
         self.UpdateNozzlePosition()
+        self.SendLine("M117 ## Materializer") # message
 
     def __Error_(self, *msg):
         msg = "".join(str(i) for i in msg)
