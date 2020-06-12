@@ -1,5 +1,5 @@
 
-# Interactive Drawing Interface for Digital Fabrication (OSC Controller)
+# OSC Controller for Interactive Digital Fabrication 
 
 This software acts as a mediator between [the frontend](https://github.com/merttoka/materializer) and Ender 3 Pro using [Printrun](https://github.com/kliment/Printrun) module. It listens to below key shortcuts and OSC messages to issue print instructions to the 3D printer. 
 Started development as the final project for MAT594X Computational Fabrication @ UC Santa Barbara.
